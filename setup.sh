@@ -144,18 +144,24 @@ if [[ ":$PATH:" != *":$TARGET_DIR:"* ]]; then
   shell_name="$(basename "${SHELL:-}")"
   profile_file="~/.profile"
   profile_cmd="export PATH=\"$TARGET_DIR:\$PATH\""
+  profile_append_cmd="echo 'export PATH=\"$TARGET_DIR:\$PATH\"' >> ~/.profile"
   if [[ "$shell_name" == "zsh" ]]; then
     profile_file="~/.zshrc"
+    profile_append_cmd="echo 'export PATH=\"$TARGET_DIR:\$PATH\"' >> ~/.zshrc"
   elif [[ "$shell_name" == "bash" ]]; then
     profile_file="~/.bashrc"
+    profile_append_cmd="echo 'export PATH=\"$TARGET_DIR:\$PATH\"' >> ~/.bashrc"
   elif [[ "$shell_name" == "fish" ]]; then
     profile_file="~/.config/fish/config.fish"
     profile_cmd="set -gx PATH $TARGET_DIR \$PATH"
+    profile_append_cmd="echo 'set -gx PATH $TARGET_DIR \$PATH' >> ~/.config/fish/config.fish"
   fi
 
   echo
   echo "Add this to your shell profile ($profile_file):"
   echo "  $profile_cmd"
+  echo "Or append it automatically:"
+  echo "  $profile_append_cmd"
   echo "Or run for current shell now:"
   echo "  export PATH=\"$TARGET_DIR:\$PATH\""
 fi
