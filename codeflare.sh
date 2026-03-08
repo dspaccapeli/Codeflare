@@ -10,6 +10,7 @@ OPENCODE_LISTEN_HOST="127.0.0.1"
 OPENCODE_PORT="4096"
 CODEFLARE_QUIET_DISCONNECT_LOGS="false"
 CODEFLARE_FORCE_DNS="false"
+CODEFLARE_TUNNEL_PROTOCOL="quic"
 
 usage() {
   cat <<USAGE
@@ -42,6 +43,7 @@ load_env() {
   OPENCODE_PORT="$(read_env_var OPENCODE_PORT || printf '%s' "$OPENCODE_PORT")"
   CODEFLARE_QUIET_DISCONNECT_LOGS="$(read_env_var CODEFLARE_QUIET_DISCONNECT_LOGS || printf '%s' "$CODEFLARE_QUIET_DISCONNECT_LOGS")"
   CODEFLARE_FORCE_DNS="$(read_env_var CODEFLARE_FORCE_DNS || printf '%s' "$CODEFLARE_FORCE_DNS")"
+  CODEFLARE_TUNNEL_PROTOCOL="$(read_env_var CODEFLARE_TUNNEL_PROTOCOL || printf '%s' "$CODEFLARE_TUNNEL_PROTOCOL")"
 }
 
 require_cmd() {
@@ -78,6 +80,11 @@ valid_hostname() {
   [[ "$h" =~ ^[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?(\.[A-Za-z0-9]([A-Za-z0-9-]{0,61}[A-Za-z0-9])?)+$ ]]
 }
 
+valid_tunnel_protocol() {
+  local p="$1"
+  [[ "$p" == "quic" || "$p" == "http2" ]]
+}
+
 validate_runtime_config() {
   if ! valid_hostname "$OPENCODE_PUBLIC_HOSTNAME"; then
     echo "OPENCODE_PUBLIC_HOSTNAME is invalid: $OPENCODE_PUBLIC_HOSTNAME" >&2
@@ -85,6 +92,10 @@ validate_runtime_config() {
   fi
   if ! valid_port "$OPENCODE_PORT"; then
     echo "OPENCODE_PORT must be an integer between 1 and 65535 (got: $OPENCODE_PORT)" >&2
+    exit 1
+  fi
+  if ! valid_tunnel_protocol "$CODEFLARE_TUNNEL_PROTOCOL"; then
+    echo "CODEFLARE_TUNNEL_PROTOCOL must be one of: quic, http2 (got: $CODEFLARE_TUNNEL_PROTOCOL)" >&2
     exit 1
   fi
 }
@@ -103,13 +114,14 @@ cleanup_tmp_config() {
 
 run_cloudflared() {
   local quiet="${CODEFLARE_QUIET_DISCONNECT_LOGS:-false}"
+  local protocol="${CODEFLARE_TUNNEL_PROTOCOL:-quic}"
   if [[ "$quiet" == "true" ]]; then
-    cloudflared tunnel --config "$TMP_CONFIG" run 2>&1 | awk '
+    cloudflared tunnel --protocol "$protocol" --config "$TMP_CONFIG" run 2>&1 | awk '
       /canceled by remote with error code 0/ { next }
       { print }
     '
   else
-    cloudflared tunnel --config "$TMP_CONFIG" run
+    cloudflared tunnel --protocol "$protocol" --config "$TMP_CONFIG" run
   fi
 }
 

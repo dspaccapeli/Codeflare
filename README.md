@@ -118,3 +118,14 @@ To force replacement on each run:
 ```bash
 CODEFLARE_FORCE_DNS=true
 ```
+
+## Optional tunnel protocol
+
+By default, `codeflare` uses QUIC (`CODEFLARE_TUNNEL_PROTOCOL=quic`).
+If your network path handles TCP more consistently than UDP, you can optionally use HTTP/2 instead:
+
+```bash
+CODEFLARE_TUNNEL_PROTOCOL=http2
+```
+
+in `~/.config/codeflare/.env`.
