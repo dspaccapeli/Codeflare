@@ -102,7 +102,7 @@ validate_runtime_config() {
 
 init_tmp_config() {
   if [[ -z "$TMP_CONFIG" ]]; then
-    TMP_CONFIG="$(mktemp /tmp/codeflare-tunnel.XXXXXX.yml)"
+    TMP_CONFIG="$(mktemp /tmp/codeflare-tunnel.XXXXXX)"
   fi
 }
 
